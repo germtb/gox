@@ -1,0 +1,23 @@
+package main
+
+import "github.com/germtb/gox"
+
+// ButtonProps defines the props for the Button component
+type ButtonProps struct {
+	Label    string
+	Disabled bool
+	OnClick  func()
+}
+
+// Button is a typed component
+func Button(props ButtonProps, children ...gox.VNode) gox.VNode {
+	return <button disabled={props.Disabled} onClick={props.OnClick}> {props.Label} </button>
+}
+
+// TypedApp demonstrates using typed components
+func TypedApp() gox.VNode {
+	return <box>
+		<Button label="Submit" disabled={false} />
+		<Button label="Cancel" disabled={true}> Click me </Button>
+	</box>
+}

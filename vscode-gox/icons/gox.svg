@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background with darker Go Blue -->
+  <rect x="1" y="5" width="30" height="22" rx="3" fill="#007D9C"/>
+
+  <!-- < bracket -->
+  <path d="M6 16 L9 12 M6 16 L9 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- G -->
+  <path d="M13 12 L17 12 M13 12 L13 20 L17 20 L17 16 L15 16" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- O -->
+  <ellipse cx="22" cy="16" rx="3" ry="4" stroke="white" stroke-width="2" fill="none"/>
+
+  <!-- /> -->
+  <path d="M27 12 L29 16 L27 20" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

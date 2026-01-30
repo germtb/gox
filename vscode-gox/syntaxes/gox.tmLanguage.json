@@ -1,0 +1,118 @@
+{
+  "name": "Gox",
+  "scopeName": "source.gox",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#keywords" },
+    { "include": "#jsx" },
+    { "include": "#functions" },
+    { "include": "#types" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.gox",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.gox",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.gox",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.gox", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.raw.gox",
+          "begin": "`",
+          "end": "`"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.gox",
+          "match": "\\b(if|else|for|range|switch|case|default|return|break|continue|goto|fallthrough|defer|go|select)\\b"
+        },
+        {
+          "name": "keyword.declaration.gox",
+          "match": "\\b(func|var|const|type|struct|interface|map|chan|package|import)\\b"
+        },
+        {
+          "name": "constant.language.gox",
+          "match": "\\b(true|false|nil|iota)\\b"
+        }
+      ]
+    },
+    "jsx": {
+      "patterns": [
+        {
+          "name": "meta.tag.gox",
+          "begin": "<([A-Za-z][A-Za-z0-9]*)",
+          "beginCaptures": {
+            "1": { "name": "entity.name.tag.gox" }
+          },
+          "end": "/?>",
+          "patterns": [
+            { "include": "#jsx-attributes" }
+          ]
+        },
+        {
+          "name": "meta.tag.close.gox",
+          "match": "</([A-Za-z][A-Za-z0-9]*)>",
+          "captures": {
+            "1": { "name": "entity.name.tag.gox" }
+          }
+        },
+        {
+          "name": "meta.fragment.gox",
+          "match": "<>|</>"
+        }
+      ]
+    },
+    "jsx-attributes": {
+      "patterns": [
+        {
+          "name": "entity.other.attribute-name.gox",
+          "match": "[A-Za-z][A-Za-z0-9]*(?==)"
+        },
+        {
+          "name": "meta.embedded.expression.gox",
+          "begin": "\\{",
+          "end": "\\}",
+          "patterns": [
+            { "include": "$self" }
+          ]
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.gox",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.gox",
+          "match": "\\b(string|int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|float32|float64|complex64|complex128|byte|rune|bool|error|any)\\b"
+        }
+      ]
+    }
+  }
+}

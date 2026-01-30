@@ -1,0 +1,70 @@
+{
+  "name": "vscode-gox",
+  "displayName": "Gox Language Support",
+  "description": "Language support for .gox files (Go + JSX)",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": ["Programming Languages", "Formatters"],
+  "activationEvents": [
+    "onLanguage:gox",
+    "workspaceContains:**/*.gox"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "gox",
+        "extensions": [".gox"],
+        "aliases": ["Gox", "gox"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/gox.svg",
+          "dark": "./icons/gox.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gox",
+        "scopeName": "source.gox",
+        "path": "./syntaxes/gox.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Gox",
+      "properties": {
+        "gox.lsp.path": {
+          "type": "string",
+          "default": "gox",
+          "description": "Path to the gox executable"
+        },
+        "gox.formatOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Format .gox files on save"
+        }
+      }
+    },
+    "configurationDefaults": {
+      "[gox]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "vscode-gox"
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  }
+}

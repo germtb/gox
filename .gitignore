@@ -1,0 +1,26 @@
+# Build artifacts
+/gox
+cmd/gox/gox
+*.exe
+
+# Generated files (gox is a tool, not a library)
+# NOTE: If you're building a LIBRARY, remove these patterns
+# so consumers can `go get` without needing gox installed.
+# See README.md for details.
+*_gox.go
+*_gox.go.map
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+
+# npm
+node_modules/
