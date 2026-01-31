@@ -1,8 +1,14 @@
 {
-  "name": "vscode-gox",
+  "name": "gox-lang",
   "displayName": "Gox Language Support",
   "description": "Language support for .gox files (Go + JSX)",
   "version": "0.1.0",
+  "publisher": "germtb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/germtb/gox"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.75.0"
   },
