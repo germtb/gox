@@ -63,7 +63,6 @@ func TestAttributeTypes(t *testing.T) {
 	// Verify all attribute types implement Attribute interface
 	var _ Attribute = &StringAttribute{Key: "id", Value: "test"}
 	var _ Attribute = &ExpressionAttribute{Key: "onClick", Expression: "handleClick"}
-	var _ Attribute = &SpreadAttribute{Expression: "props"}
 }
 
 func TestJSXChildTypes(t *testing.T) {

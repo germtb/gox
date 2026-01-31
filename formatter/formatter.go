@@ -307,10 +307,6 @@ func (f *Formatter) formatAttribute(attr ast.Attribute) {
 		f.buf.WriteString("={")
 		f.buf.WriteString(strings.TrimSpace(a.Expression))
 		f.buf.WriteString("}")
-	case *ast.SpreadAttribute:
-		f.buf.WriteString("{...")
-		f.buf.WriteString(strings.TrimSpace(a.Expression))
-		f.buf.WriteString("}")
 	}
 }
 

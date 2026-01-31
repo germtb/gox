@@ -192,13 +192,6 @@ func (l *Lexer) lexJSX() Token {
 			return l.lexJSXString()
 		}
 
-		if ch == '.' && l.peekNext() == '.' && l.peekAt(2) == '.' {
-			l.advance()
-			l.advance()
-			l.advance()
-			return l.makeToken(TOKEN_JSX_SPREAD, "...")
-		}
-
 		if isIdentStart(ch) {
 			if l.needTagName {
 				l.needTagName = false

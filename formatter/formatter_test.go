@@ -170,21 +170,6 @@ func App() {
 }
 `,
 		},
-		{
-			name: "spread attribute",
-			input: `package main
-
-func App() {
-	return <div {...props} />
-}
-`,
-			expected: `package main
-
-func App() {
-	return <div {...props} />
-}
-`,
-		},
 	}
 
 	for _, tt := range tests {

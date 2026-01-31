@@ -23,7 +23,6 @@ const (
 	TOKEN_JSX_LBRACE     // {
 	TOKEN_JSX_RBRACE     // }
 	TOKEN_JSX_TEXT       // text between tags
-	TOKEN_JSX_SPREAD     // ...
 	TOKEN_JSX_EXPR       // expression content inside {}
 	TOKEN_JSX_FRAG_OPEN  // <>
 	TOKEN_JSX_FRAG_CLOSE // </>
@@ -58,8 +57,6 @@ func (t TokenType) String() string {
 		return "JSX_RBRACE"
 	case TOKEN_JSX_TEXT:
 		return "JSX_TEXT"
-	case TOKEN_JSX_SPREAD:
-		return "JSX_SPREAD"
 	case TOKEN_JSX_EXPR:
 		return "JSX_EXPR"
 	case TOKEN_JSX_FRAG_OPEN:

@@ -85,22 +85,3 @@ func MapIndex[T any](items []T, fn func(int, T) VNode) []VNode {
 func Spread(nodes []VNode) VNode {
 	return Fragment(nodes...)
 }
-
-// MergeProps merges multiple Props objects, with later ones taking precedence.
-// Useful for spread props: gox.MergeProps(baseProps, spreadProps, extraProps)
-func MergeProps(propsList ...Props) Props {
-	if len(propsList) == 0 {
-		return nil
-	}
-	if len(propsList) == 1 {
-		return propsList[0]
-	}
-
-	result := Props{}
-	for _, props := range propsList {
-		for k, v := range props {
-			result[k] = v
-		}
-	}
-	return result
-}

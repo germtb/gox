@@ -240,23 +240,6 @@ func (g *Generator) generateTypedProps(attrs []ast.Attribute, propsType string) 
 		return
 	}
 
-	// Check for spread attributes
-	hasSpread := false
-	for _, attr := range attrs {
-		if _, ok := attr.(*ast.SpreadAttribute); ok {
-			hasSpread = true
-			break
-		}
-	}
-
-	if hasSpread {
-		// For typed props with spread, we need a different approach
-		// Generate: mergeTypedProps(baseProps, SpreadProps{...})
-		// For now, fall back to building the struct with spread merged in Go
-		g.generateTypedPropsWithSpread(attrs, propsType)
-		return
-	}
-
 	g.write(propsType + "{")
 
 	first := true
@@ -275,58 +258,6 @@ func (g *Generator) generateTypedProps(attrs []ast.Attribute, propsType string) 
 	}
 
 	g.write("}")
-}
-
-// generateTypedPropsWithSpread handles spread attributes in typed props.
-// This requires runtime support or generates inline merging.
-func (g *Generator) generateTypedPropsWithSpread(attrs []ast.Attribute, propsType string) {
-	// For typed props with spread, we generate the struct with explicit fields
-	// Spread attributes are merged at runtime - this requires the spread source
-	// to be of the same type or compatible
-
-	// Simple approach: generate struct with spread first, then override with explicit props
-	// This matches JSX semantics where later props override earlier ones
-
-	// Find spread and regular attrs
-	var spreads []*ast.SpreadAttribute
-	var regular []ast.Attribute
-	for _, attr := range attrs {
-		if s, ok := attr.(*ast.SpreadAttribute); ok {
-			spreads = append(spreads, s)
-		} else {
-			regular = append(regular, attr)
-		}
-	}
-
-	// If we have spreads, we need to merge them
-	// For typed props: we'll just use the first spread as base and add fields
-	if len(spreads) > 0 {
-		// Generate: propsType{...spread, Field: value}
-		// Go doesn't support spread in struct literals, so we need a helper
-		// For now, just use the struct literal approach and warn about spread
-		g.write(propsType + "{")
-
-		first := true
-		for _, attr := range regular {
-			if !first {
-				g.write(", ")
-			}
-			first = false
-
-			switch a := attr.(type) {
-			case *ast.StringAttribute:
-				g.write(fmt.Sprintf("%s: %q", capitalize(a.Key), a.Value))
-			case *ast.ExpressionAttribute:
-				g.write(fmt.Sprintf("%s: %s", capitalize(a.Key), a.Expression))
-			}
-		}
-
-		g.write("}")
-		return
-	}
-
-	// No spreads, just generate regular struct
-	g.generateTypedProps(regular, propsType)
 }
 
 // generateJSXFragment generates code for a JSX fragment.
@@ -375,21 +306,6 @@ func (g *Generator) generateProps(attrs []ast.Attribute) {
 		return
 	}
 
-	// Check for spread attributes
-	hasSpread := false
-	for _, attr := range attrs {
-		if _, ok := attr.(*ast.SpreadAttribute); ok {
-			hasSpread = true
-			break
-		}
-	}
-
-	if hasSpread {
-		// Use gox.MergeProps for spread handling
-		g.generatePropsWithSpread(attrs)
-		return
-	}
-
 	g.write("gox.Props{")
 
 	first := true
@@ -408,60 +324,6 @@ func (g *Generator) generateProps(attrs []ast.Attribute) {
 	}
 
 	g.write("}")
-}
-
-// generatePropsWithSpread generates props that include spread attributes.
-func (g *Generator) generatePropsWithSpread(attrs []ast.Attribute) {
-	// Generate gox.MergeProps(...) with props in order
-	// This preserves the JSX semantics where later props override earlier ones
-
-	g.write("gox.MergeProps(")
-
-	// Group consecutive regular props together
-	first := true
-	var regularBatch []ast.Attribute
-
-	flushRegularBatch := func() {
-		if len(regularBatch) == 0 {
-			return
-		}
-		if !first {
-			g.write(", ")
-		}
-		first = false
-
-		g.write("gox.Props{")
-		for i, attr := range regularBatch {
-			if i > 0 {
-				g.write(", ")
-			}
-			switch a := attr.(type) {
-			case *ast.StringAttribute:
-				g.write(fmt.Sprintf("%q: %q", a.Key, a.Value))
-			case *ast.ExpressionAttribute:
-				g.write(fmt.Sprintf("%q: %s", a.Key, wrapMapLiteral(a.Expression)))
-			}
-		}
-		g.write("}")
-		regularBatch = nil
-	}
-
-	for _, attr := range attrs {
-		switch a := attr.(type) {
-		case *ast.SpreadAttribute:
-			flushRegularBatch()
-			if !first {
-				g.write(", ")
-			}
-			first = false
-			g.write(a.Expression)
-		default:
-			regularBatch = append(regularBatch, attr)
-		}
-	}
-
-	flushRegularBatch()
-	g.write(")")
 }
 
 // generateJSXChild generates code for a JSX child.

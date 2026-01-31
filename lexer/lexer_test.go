@@ -199,24 +199,6 @@ func TestLexFragment(t *testing.T) {
 	assertTokenTypes(t, tokens, expected)
 }
 
-func TestLexSpreadAttribute(t *testing.T) {
-	input := `<box {...props}>`
-
-	lex := New(input)
-
-	tokens := collectTokens(lex)
-
-	expected := []TokenType{
-		TOKEN_JSX_OPEN,  // <
-		TOKEN_JSX_TAG,   // box
-		TOKEN_JSX_EXPR,  // ...props
-		TOKEN_JSX_CLOSE, // >
-		TOKEN_EOF,
-	}
-
-	assertTokenTypes(t, tokens, expected)
-}
-
 func TestLexGoCodeBeforeJSX(t *testing.T) {
 	input := `package main
 

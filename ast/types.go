@@ -35,7 +35,7 @@ func (*JSXElement) node()             {}
 func (e *JSXElement) GetRange() Range { return e.Range }
 func (*JSXElement) jsxChildNode()     {}
 
-// Attribute can be string, expression, or spread.
+// Attribute can be string or expression.
 type Attribute interface {
 	attributeNode()
 	GetRange() Range
@@ -60,15 +60,6 @@ type ExpressionAttribute struct {
 
 func (*ExpressionAttribute) attributeNode()    {}
 func (a *ExpressionAttribute) GetRange() Range { return a.Range }
-
-// SpreadAttribute represents {...expression}.
-type SpreadAttribute struct {
-	Expression string
-	Range      Range
-}
-
-func (*SpreadAttribute) attributeNode()    {}
-func (a *SpreadAttribute) GetRange() Range { return a.Range }
 
 // JSXChild can be text, expression, or nested element.
 type JSXChild interface {

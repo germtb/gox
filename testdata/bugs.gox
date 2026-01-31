@@ -2,16 +2,7 @@ package testdata
 
 import "github.com/germtb/gox"
 
-// Bug 1: Spread props should merge into props
-func SpreadPropsTest(props gox.Props) gox.VNode {
-	buttonProps := gox.Props{
-		"disabled": false,
-		"style":    "primary",
-	}
-	return <button {...buttonProps} onClick={func() {}}> Submit </button>
-}
-
-// Bug 2: JSX comments should be stripped, not wrapped in gox.V()
+// Bug 1: JSX comments should be stripped, not wrapped in gox.V()
 func CommentsTest(props gox.Props) gox.VNode {
 	return <box>
 		{/* This is a comment */}
@@ -20,7 +11,7 @@ func CommentsTest(props gox.Props) gox.VNode {
 	</box>
 }
 
-// Bug 3: Inline map literals need type annotation
+// Bug 2: Inline map literals need type annotation
 func InlineMapTest(props gox.Props) gox.VNode {
 	return <box style={{
 		"color":      "blue",

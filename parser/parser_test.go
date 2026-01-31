@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/germtb/gox/ast"
@@ -243,27 +244,16 @@ func App() VNode {
 	}
 }
 
-func TestParseSpreadAttribute(t *testing.T) {
+func TestParseSpreadAttributeError(t *testing.T) {
 	src := `<box {...props}></box>`
 
-	file, err := Parse("test.gox", []byte(src))
-	if err != nil {
-		t.Fatalf("Parse error: %v", err)
+	_, err := Parse("test.gox", []byte(src))
+	if err == nil {
+		t.Fatal("Expected error for spread attribute, got nil")
 	}
 
-	elem := file.Nodes[0].(*ast.JSXElement)
-
-	if len(elem.Attributes) != 1 {
-		t.Fatalf("Expected 1 attribute, got %d", len(elem.Attributes))
-	}
-
-	spread, ok := elem.Attributes[0].(*ast.SpreadAttribute)
-	if !ok {
-		t.Fatalf("Expected SpreadAttribute, got %T", elem.Attributes[0])
-	}
-
-	if spread.Expression != "props" {
-		t.Errorf("Expected expression 'props', got %q", spread.Expression)
+	if !strings.Contains(err.Error(), "spread attributes are not supported") {
+		t.Errorf("Expected spread error message, got: %v", err)
 	}
 }
 

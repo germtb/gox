@@ -248,16 +248,6 @@ func SpecialChars(props gox.Props) gox.VNode {
 	</box>
 }
 
-// ========== Spread Props ==========
-
-func SpreadPropsExample(props gox.Props) gox.VNode {
-	buttonProps := gox.Props{
-		"disabled": false,
-		"style":    "primary",
-	}
-	return <button {...buttonProps} onClick={func() {}}> Submit </button>
-}
-
 // ========== JSX Comments ==========
 
 func CommentsExample(props gox.Props) gox.VNode {

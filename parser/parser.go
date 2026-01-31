@@ -189,12 +189,11 @@ func (p *Parser) parseJSXAttributes() []ast.Attribute {
 			}
 
 		case lexer.TOKEN_JSX_EXPR:
-			// Spread attribute: {...expr}
-			if len(p.tok.Value) > 3 && p.tok.Value[:3] == "..." {
-				attrs = append(attrs, &ast.SpreadAttribute{
-					Expression: p.tok.Value[3:],
-					Range:      p.tokenRange(),
-				})
+			// Check for spread syntax which is not supported
+			if len(p.tok.Value) >= 3 && p.tok.Value[:3] == "..." {
+				p.error("spread attributes are not supported: {...%s}", p.tok.Value[3:])
+			} else {
+				p.error("standalone expressions in attribute position are not supported: {%s}", p.tok.Value)
 			}
 			p.advance()
 
