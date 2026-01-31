@@ -16,7 +16,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: 'stable'
 
       - name: Build gox
         run: go build -o /tmp/gox ./cmd/gox
@@ -39,7 +39,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: 'stable'
 
       - name: Build gox
         run: go build -o /tmp/gox ./cmd/gox
