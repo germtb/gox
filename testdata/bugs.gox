@@ -1,0 +1,33 @@
+package testdata
+
+import "github.com/germtb/gox/runtime"
+
+// Bug 1: Spread props should merge into props
+func SpreadPropsTest(props runtime.Props) runtime.VNode {
+	buttonProps := runtime.Props{
+		"disabled": false,
+		"style":    "primary",
+	}
+	return <button {...buttonProps} onClick={func() {}}>
+		Submit
+	</button>
+}
+
+// Bug 2: JSX comments should be stripped, not wrapped in runtime.V()
+func CommentsTest(props runtime.Props) runtime.VNode {
+	return <box>
+		{/* This is a comment */}
+		<text>Visible</text>
+		{/* Another comment */}
+	</box>
+}
+
+// Bug 3: Inline map literals need type annotation
+func InlineMapTest(props runtime.Props) runtime.VNode {
+	return <box style={{
+		"color":      "blue",
+		"background": "white",
+	}}>
+		<text>Styled</text>
+	</box>
+}

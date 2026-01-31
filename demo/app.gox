@@ -1,0 +1,191 @@
+package main
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/germtb/gox/runtime"
+)
+
+// A simple text-based renderer that prints the VNode tree.
+type TextRenderer struct {
+	indent int
+}
+
+func (r *TextRenderer) Render(node runtime.VNode) string {
+	var sb strings.Builder
+	r.renderNode(&sb, node, 0)
+	return sb.String()
+}
+
+func (r *TextRenderer) collectText(sb *strings.Builder, node runtime.VNode) {
+	if content, ok := node.GetTextContent(); ok {
+		sb.WriteString(content)
+		return
+	}
+	for _, child := range node.Children {
+		r.collectText(sb, child)
+	}
+}
+
+func (r *TextRenderer) renderNode(sb *strings.Builder, node runtime.VNode, depth int) {
+	indent := strings.Repeat("  ", depth)
+
+	// Handle components by invoking them
+	if node.IsComponent() {
+		if fn, ok := node.Type.(runtime.Component); ok {
+			expanded := fn(node.Props)
+			r.renderNode(sb, expanded, depth)
+			return
+		}
+	}
+
+	// Handle text nodes
+	if content, ok := node.GetTextContent(); ok {
+		sb.WriteString(indent + content + "\n")
+		return
+	}
+
+	// Handle fragments
+	if node.IsFragment() {
+		for _, child := range node.Children {
+			r.renderNode(sb, child, depth)
+		}
+		return
+	}
+
+	// Handle elements
+	if tag, ok := node.Type.(string); ok {
+		// Get style from props
+		style := ""
+		if s, ok := node.Props["style"].(string); ok {
+			style = s
+		}
+
+		switch tag {
+		case "box":
+			// Box renders its children
+			for _, child := range node.Children {
+				r.renderNode(sb, child, depth)
+			}
+
+		case "text":
+			// Text renders inline content
+			var content strings.Builder
+			for _, child := range node.Children {
+				if c, ok := child.GetTextContent(); ok {
+					content.WriteString(c)
+				}
+			}
+			text := content.String()
+			if style == "bold" {
+				text = "\033[1m" + text + "\033[0m"
+			} else if style == "dim" {
+				text = "\033[2m" + text + "\033[0m"
+			}
+			sb.WriteString(indent + text + "\n")
+
+		case "list":
+			for _, child := range node.Children {
+				sb.WriteString(indent + "• ")
+				// Render child inline
+				if child.IsComponent() {
+					if fn, ok := child.Type.(runtime.Component); ok {
+						expanded := fn(child.Props)
+						// Render text from expanded component
+						var text strings.Builder
+						r.collectText(&text, expanded)
+						sb.WriteString(text.String() + "\n")
+					}
+				} else if elem, ok := child.Type.(string); ok && elem == "text" {
+					var text strings.Builder
+					for _, c := range child.Children {
+						if t, ok := c.GetTextContent(); ok {
+							text.WriteString(t)
+						}
+					}
+					sb.WriteString(text.String() + "\n")
+				} else {
+					sb.WriteString("\n")
+					r.renderNode(sb, child, depth+1)
+				}
+			}
+
+		case "divider":
+			sb.WriteString(indent + "────────────────────\n")
+
+		default:
+			for _, child := range node.Children {
+				r.renderNode(sb, child, depth)
+			}
+		}
+	}
+}
+
+// ========== Components ==========
+
+// HeaderProps are the props for the Header component.
+type HeaderProps struct {
+	Title string
+}
+
+// Header renders a styled header.
+func Header(props HeaderProps) runtime.VNode {
+	return <box>
+		<text style="bold">{props.Title}</text>
+		<divider />
+	</box>
+}
+
+// MenuItemProps are the props for the MenuItem component.
+type MenuItemProps struct {
+	Label    string
+	Shortcut string
+}
+
+// MenuItem renders a menu item.
+func MenuItem(props MenuItemProps) runtime.VNode {
+	return <text>{props.Label} [{props.Shortcut}]</text>
+}
+
+// MenuProps are the props for the Menu component.
+type MenuProps struct{}
+
+// Menu renders a list of menu items.
+func Menu(props MenuProps) runtime.VNode {
+	return <box>
+		<Header title="gox Demo CLI" />
+		<text style="dim">A JSX-like syntax for Go</text>
+		<text></text>
+		<text>Commands:</text>
+		<list>
+			<MenuItem label="Generate" shortcut="g" />
+			<MenuItem label="Watch" shortcut="w" />
+			<MenuItem label="Help" shortcut="h" />
+			<MenuItem label="Quit" shortcut="q" />
+		</list>
+		<text></text>
+		<text style="dim">Press a key to select...</text>
+	</box>
+}
+
+// AppProps are the props for the App component.
+type AppProps struct{}
+
+// App is the root component.
+func App(props AppProps) runtime.VNode {
+	return <box>
+		<Menu />
+	</box>
+}
+
+func main() {
+	// Build the UI tree
+	ui := App(AppProps{})
+
+	// Render to terminal
+	renderer := &TextRenderer{}
+	output := renderer.Render(ui)
+
+	fmt.Print(output)
+}

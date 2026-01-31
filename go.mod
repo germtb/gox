@@ -1,3 +1,3 @@
-module github.com/gerardmtb/gox
+module github.com/germtb/gox
 
 go 1.21

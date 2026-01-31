@@ -1,0 +1,306 @@
+package testdata
+
+import (
+	"fmt"
+
+	"github.com/germtb/gox/runtime"
+)
+
+// ========== Deep Nesting ==========
+
+func DeeplyNested(props runtime.Props) runtime.VNode {
+	return <box>
+		<box>
+			<box>
+				<box>
+					<box>
+						<text>Level 5</text>
+					</box>
+				</box>
+			</box>
+		</box>
+	</box>
+}
+
+// ========== Arrow Functions as Props ==========
+
+func WithCallback(props runtime.Props) runtime.VNode {
+	return <button onClick={func() { fmt.Println("clicked") }}>
+		Click me
+	</button>
+}
+
+func WithArrowCallback(props runtime.Props) runtime.VNode {
+	handler := func(x int) int { return x * 2 }
+	return <input onChange={handler} onBlur={func() {}} />
+}
+
+// ========== Render Callbacks (using runtime.Map) ==========
+
+func RenderCallback(props runtime.Props) runtime.VNode {
+	items := []string{"a", "b", "c"}
+	return <list>
+		{runtime.Map(items, func(item string) runtime.VNode {
+			return <text>{item}</text>
+		})}
+	</list>
+}
+
+// ========== Complex Expressions ==========
+
+func ComplexExpressions(props runtime.Props) runtime.VNode {
+	count := 42
+	name := "world"
+	items := []int{1, 2, 3}
+	size := func() string {
+		if count > 10 {
+			return "big"
+		}
+		return "small"
+	}()
+
+	return <box>
+		<text>Count: {count}</text>
+		<text>Double: {count * 2}</text>
+		<text>Size: {size}</text>
+		<text>Hello, {name}!</text>
+		<text>Length: {len(items)}</text>
+		<text>Sum: {items[0] + items[1] + items[2]}</text>
+	</box>
+}
+
+// ========== Conditionals ==========
+
+func Conditionals(props runtime.Props) runtime.VNode {
+	showHeader := true
+	showFooter := false
+	count := 5
+
+	return <box>
+		{showHeader && <TestHeader title="Hello" />}
+		{!showFooter && <text>No footer</text>}
+		{count > 0 && <text>Has items</text>}
+	</box>
+}
+
+// ========== Mixed Text and Expressions ==========
+
+func MixedContent(props runtime.Props) runtime.VNode {
+	name := "Alice"
+	age := 30
+
+	return <box>
+		<text>Hello, {name}! You are {age} years old.</text>
+		<text>Next year you'll be {age + 1}.</text>
+		<text>Your name has {len(name)} letters.</text>
+	</box>
+}
+
+// ========== Self-closing vs Regular ==========
+
+func SelfClosingVariants(props runtime.Props) runtime.VNode {
+	return <box>
+		<input />
+		<input type="text" />
+		<br />
+		<hr />
+		<TestComponent />
+		<TestComponent prop="value" />
+		<text></text>
+		<box></box>
+	</box>
+}
+
+// ========== Fragments ==========
+
+func FragmentExamples(props runtime.Props) runtime.VNode {
+	return <>
+		<text>First</text>
+		<text>Second</text>
+		<>
+			<text>Nested fragment 1</text>
+			<text>Nested fragment 2</text>
+		</>
+	</>
+}
+
+// ========== Component Composition ==========
+
+func Parent(props runtime.Props) runtime.VNode {
+	return <box>
+		<Child name="Alice" age={30} />
+		<Child name="Bob" age={25} />
+	</box>
+}
+
+func Child(props runtime.Props) runtime.VNode {
+	name, _ := props["name"].(string)
+	age, _ := props["age"].(int)
+	return <text>{name} is {age}</text>
+}
+
+// ========== Struct Props ==========
+
+type User struct {
+	Name  string
+	Email string
+}
+
+func WithStructProps(props runtime.Props) runtime.VNode {
+	user := User{Name: "Alice", Email: "alice@example.com"}
+
+	return <box>
+		<text>Name: {user.Name}</text>
+		<text>Email: {user.Email}</text>
+		<UserCard user={user} />
+	</box>
+}
+
+func UserCard(props runtime.Props) runtime.VNode {
+	user, _ := props["user"].(User)
+	return <box>
+		<text style="bold">{user.Name}</text>
+		<text style="dim">{user.Email}</text>
+	</box>
+}
+
+// ========== Method Calls ==========
+
+func MethodCalls(props runtime.Props) runtime.VNode {
+	items := []string{"hello", "world"}
+
+	return <box>
+		<text>{fmt.Sprintf("Count: %d", len(items))}</text>
+		<text>{items[0]}</text>
+	</box>
+}
+
+// ========== Boolean and Nil Props ==========
+
+func BooleanProps(props runtime.Props) runtime.VNode {
+	return <box>
+		<input disabled={true} />
+		<input disabled={false} />
+		<button loading={true}>Submit</button>
+	</box>
+}
+
+// ========== Map Literal Props ==========
+
+func MapLiteralProps(props runtime.Props) runtime.VNode {
+	style := map[string]any{
+		"color":      "blue",
+		"background": "white",
+		"padding":    10,
+	}
+	return <box style={style}>
+		<text>Styled content</text>
+	</box>
+}
+
+// ========== Slice Props ==========
+
+func SliceProps(props runtime.Props) runtime.VNode {
+	return <list items={[]string{"a", "b", "c"}}>
+		<text>List content</text>
+	</list>
+}
+
+// ========== Multiline JSX ==========
+
+func MultilineJSX(props runtime.Props) runtime.VNode {
+	return <box
+		direction="column"
+		gap={10}
+		style="container"
+	>
+		<text
+			style="heading"
+		>
+			Title
+		</text>
+		<text>Content</text>
+	</box>
+}
+
+// ========== Empty Elements ==========
+
+func EmptyElements(props runtime.Props) runtime.VNode {
+	return <box>
+		<text></text>
+		<box></box>
+		<></>
+	</box>
+}
+
+// ========== Unicode Content ==========
+
+func UnicodeContent(props runtime.Props) runtime.VNode {
+	emoji := "🎉"
+	return <box>
+		<text>Hello 世界!</text>
+		<text>Emoji: {emoji}</text>
+		<text>→ Arrow ← symbols ↔</text>
+	</box>
+}
+
+// ========== Special Characters in Strings ==========
+
+func SpecialChars(props runtime.Props) runtime.VNode {
+	return <box>
+		<text>Quote: "hello"</text>
+		<text>Apostrophe: it's</text>
+		<text>Ampersand: rock & roll</text>
+		<text>Backslash: C:\path</text>
+	</box>
+}
+
+// ========== Spread Props ==========
+
+func SpreadPropsExample(props runtime.Props) runtime.VNode {
+	buttonProps := runtime.Props{
+		"disabled": false,
+		"style":    "primary",
+	}
+	return <button {...buttonProps} onClick={func() {}}>
+		Submit
+	</button>
+}
+
+// ========== JSX Comments ==========
+
+func CommentsExample(props runtime.Props) runtime.VNode {
+	return <box>
+		{/* This is a comment */}
+		<text>Visible content</text>
+		{/* Another comment */}
+	</box>
+}
+
+// ========== Inline Map Literals ==========
+
+func InlineMapExample(props runtime.Props) runtime.VNode {
+	return <box style={{
+		"color":      "blue",
+		"background": "white",
+		"padding":    10,
+	}}>
+		<text>Styled content</text>
+	</box>
+}
+
+// ========== Helper Components ==========
+
+func TestHeader(props runtime.Props) runtime.VNode {
+	title, _ := props["title"].(string)
+	return <box>
+		<text style="bold">{title}</text>
+		<hr />
+	</box>
+}
+
+func TestComponent(props runtime.Props) runtime.VNode {
+	return <box>
+		<text>Test Component</text>
+	</box>
+}

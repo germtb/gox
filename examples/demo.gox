@@ -1,0 +1,47 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/germtb/gox/runtime"
+)
+
+// AppProps defines the properties for the App component.
+type AppProps struct {
+	Name      string
+	ShowExtra bool
+}
+
+// App demonstrates gox features: elements, components, conditionals, text interpolation.
+func App(props AppProps) runtime.VNode {
+	return <box direction="row" gap={1}>
+		<text>Hello, {props.Name}!</text>
+		{props.ShowExtra && <Extra message="Bonus content" />}
+	</box>
+}
+
+// Extra is a reusable component.
+func Extra(props runtime.Props) runtime.VNode {
+	return <box>
+		<text>{props["message"]}</text>
+	</box>
+}
+
+func main() {
+	// Build a VNode tree
+	node := App(AppProps{Name: "World", ShowExtra: true})
+
+	// Walk the tree to demonstrate it works
+	runtime.WalkTree(node, runtime.WalkFunc(func(n runtime.VNode, depth int) bool {
+		indent := ""
+		for i := 0; i < depth; i++ {
+			indent += "  "
+		}
+		if content, ok := n.GetTextContent(); ok {
+			fmt.Printf("%sText: %q\n", indent, content)
+		} else if s, ok := n.Type.(string); ok {
+			fmt.Printf("%sElement: %s\n", indent, s)
+		}
+		return true
+	}))
+}

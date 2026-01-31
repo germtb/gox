@@ -1,0 +1,76 @@
+# GoReleaser configuration for gox
+# See https://goreleaser.com for documentation
+
+version: 2
+
+project_name: gox
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - main: ./cmd/gox
+    binary: gox
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: germtb
+    name: gox
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
+
+brews:
+  - repository:
+      owner: germtb
+      name: homebrew-tap
+    directory: Formula
+    homepage: "https://github.com/germtb/gox"
+    description: "JSX-like syntax for Go"
+    license: "MIT"
+    install: |
+      bin.install "gox"
+    test: |
+      system "#{bin}/gox", "version"
