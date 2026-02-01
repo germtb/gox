@@ -2,7 +2,7 @@
   "name": "gox-lang",
   "displayName": "Gox Language Support",
   "description": "Language support for .gox files (Go + JSX)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "germtb",
   "repository": {
     "type": "git",

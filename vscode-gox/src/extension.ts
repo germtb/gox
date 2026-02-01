@@ -1,5 +1,4 @@
-import * as path from 'path';
-import { workspace, ExtensionContext, window } from 'vscode';
+import { workspace, ExtensionContext, commands, extensions } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -9,13 +8,13 @@ import {
 let client: LanguageClient;
 
 export async function activate(context: ExtensionContext) {
-  // Check if any .gox files exist in the workspace
-  const goxFiles = await workspace.findFiles('**/*.gox', '**/node_modules/**', 1);
-  const hasGoxFiles = goxFiles.length > 0;
-
   // Get the gox executable path from settings
   const config = workspace.getConfiguration('gox');
   const goxPath = config.get<string>('lsp.path') || 'gox';
+
+  // Check if the Go extension is installed and active
+  const goExtension = extensions.getExtension('golang.go');
+  const goExtensionActive = goExtension?.isActive ?? false;
 
   // Server options - run gox lsp
   const serverOptions: ServerOptions = {
@@ -23,22 +22,21 @@ export async function activate(context: ExtensionContext) {
     args: ['lsp'],
   };
 
-  // Document selector - if gox files exist, handle both .go and .gox
-  // This enables seamless navigation between Go and Gox files
-  const documentSelector = hasGoxFiles
-    ? [
+  // If Go extension is active, only handle .gox files to avoid conflicts
+  // Otherwise, handle both .gox and .go files
+  const documentSelector = goExtensionActive
+    ? [{ scheme: 'file', language: 'gox' }]
+    : [
         { scheme: 'file', language: 'gox' },
         { scheme: 'file', language: 'go' },
-      ]
-    : [{ scheme: 'file', language: 'gox' }];
+      ];
 
-  // Client options
+  const filePattern = goExtensionActive ? '**/*.gox' : '**/*.{gox,go}';
+
   const clientOptions: LanguageClientOptions = {
     documentSelector,
     synchronize: {
-      fileEvents: hasGoxFiles
-        ? workspace.createFileSystemWatcher('**/*.{gox,go}')
-        : workspace.createFileSystemWatcher('**/*.gox'),
+      fileEvents: workspace.createFileSystemWatcher(filePattern),
     },
   };
 
@@ -50,11 +48,10 @@ export async function activate(context: ExtensionContext) {
     clientOptions
   );
 
-  // Log activation mode
-  if (hasGoxFiles) {
-    console.log('Gox LSP activated for both .go and .gox files');
+  if (goExtensionActive) {
+    console.log('Gox LSP activated for .gox files only (Go extension detected)');
   } else {
-    console.log('Gox LSP activated for .gox files only');
+    console.log('Gox LSP activated for .gox and .go files');
   }
 
   client.start();
