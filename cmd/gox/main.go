@@ -175,6 +175,20 @@ func runGenerate(args []string) error {
 	return processFiles(files, cfg)
 }
 
+// skipDir returns true for directories that should be skipped during recursive walks.
+// This mirrors Go's own ./... behavior of skipping dot-prefixed and underscore-prefixed
+// directories, plus common non-Go directories.
+func skipDir(name string) bool {
+	if strings.HasPrefix(name, ".") || strings.HasPrefix(name, "_") {
+		return true
+	}
+	switch name {
+	case "vendor", "testdata", "node_modules":
+		return true
+	}
+	return false
+}
+
 // findGoxFiles finds all .gox files in the given paths.
 func findGoxFiles(paths []string) ([]string, error) {
 	var files []string
@@ -189,6 +203,9 @@ func findGoxFiles(paths []string) ([]string, error) {
 			err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 				if err != nil {
 					return err
+				}
+				if info.IsDir() && p != dir && skipDir(info.Name()) {
+					return filepath.SkipDir
 				}
 				if !info.IsDir() && strings.HasSuffix(p, ".gox") {
 					files = append(files, p)
@@ -368,6 +385,8 @@ func processFilesOverlay(files []string, cfg *generateConfig) error {
 		cfg.sourceMapsOutput = make(map[string]*generator.SourceMap)
 	}
 
+	cwd, _ := os.Getwd()
+
 	// Process each file
 	for _, inputPath := range files {
 		if cfg.verbose {
@@ -408,8 +427,16 @@ func processFilesOverlay(files []string, cfg *generateConfig) error {
 		// Set source map file paths
 		sourceMap.SetFiles(absInput, targetPath)
 
-		// Temp file path
-		tempFile := filepath.Join(tempDir, filepath.Base(targetPath))
+		// Temp file path - preserve directory structure to avoid collisions
+		// when multiple packages have .gox files with the same base name.
+		relTarget, relErr := filepath.Rel(cwd, targetPath)
+		if relErr != nil {
+			relTarget = filepath.Base(targetPath)
+		}
+		tempFile := filepath.Join(tempDir, relTarget)
+		if err := os.MkdirAll(filepath.Dir(tempFile), 0755); err != nil {
+			return fmt.Errorf("%s: creating temp subdir: %w", inputPath, err)
+		}
 		if err := os.WriteFile(tempFile, output, 0644); err != nil {
 			return fmt.Errorf("%s: writing temp file: %w", inputPath, err)
 		}
@@ -473,12 +500,22 @@ func isPath(arg string) bool {
 
 // runGoCommand runs go run or go build with automatic overlay generation.
 func runGoCommand(goCmd string, args []string) error {
-	// Extract paths from args (non-flag arguments)
+	// Extract paths and flags from args.
+	// For "go run", arguments after the package path are program arguments.
 	var paths []string
 	var goArgs []string
+	var programArgs []string
+	foundPath := false
 
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
+
+		// Once we've found a path for "go run", everything else is a program arg
+		if foundPath && goCmd == "run" && !strings.HasPrefix(arg, "-") {
+			programArgs = append(programArgs, args[i:]...)
+			break
+		}
+
 		if strings.HasPrefix(arg, "-") {
 			goArgs = append(goArgs, arg)
 			// Check if this flag takes a value (common go build/run flags)
@@ -492,6 +529,7 @@ func runGoCommand(goCmd string, args []string) error {
 			}
 		} else if isPath(arg) {
 			paths = append(paths, arg)
+			foundPath = true
 		} else {
 			// Could be a package path like "mypackage" or program args for go run
 			goArgs = append(goArgs, arg)
@@ -517,8 +555,11 @@ func runGoCommand(goCmd string, args []string) error {
 		}
 	}
 
-	// Find all .gox files
-	goxFiles, err := findGoxFiles(paths)
+	// Find all .gox files recursively from the project root.
+	// We always scan ./... so that .gox files in dependency packages
+	// (e.g., cmd/status.gox imported by main.go) are included in the overlay,
+	// even when the build target is just ".".
+	goxFiles, err := findGoxFiles([]string{"./..."})
 	if err != nil {
 		return fmt.Errorf("finding gox files: %w", err)
 	}
@@ -559,10 +600,44 @@ func runGoCommand(goCmd string, args []string) error {
 		return fmt.Errorf("generating overlay: %w", err)
 	}
 
+	// Write generated files to source directories for vet compatibility.
+	// go vet doesn't read files through the overlay, so the files must exist
+	// on disk. These are gitignored via *_gox.go and cleaned up after the command.
+	overlayData, err := os.ReadFile(overlayFile.Name())
+	if err != nil {
+		return fmt.Errorf("reading overlay: %w", err)
+	}
+	var overlayJSON Overlay
+	if err := json.Unmarshal(overlayData, &overlayJSON); err != nil {
+		return fmt.Errorf("parsing overlay: %w", err)
+	}
+	var createdFiles []string
+	for targetPath, tempPath := range overlayJSON.Replace {
+		// Only track files we create, not ones that already exist on disk
+		// (e.g., from a previous "gox generate").
+		if _, statErr := os.Stat(targetPath); statErr == nil {
+			continue
+		}
+		content, readErr := os.ReadFile(tempPath)
+		if readErr != nil {
+			continue
+		}
+		if writeErr := os.WriteFile(targetPath, content, 0644); writeErr != nil {
+			continue
+		}
+		createdFiles = append(createdFiles, targetPath)
+	}
+	defer func() {
+		for _, f := range createdFiles {
+			os.Remove(f)
+		}
+	}()
+
 	// Build go command with overlay
 	cmdArgs := []string{goCmd, "-overlay=" + overlayFile.Name()}
 	cmdArgs = append(cmdArgs, goArgs...)
 	cmdArgs = append(cmdArgs, goPaths...)
+	cmdArgs = append(cmdArgs, programArgs...)
 
 	cmd := exec.Command("go", cmdArgs...)
 	cmd.Stdout = os.Stdout
