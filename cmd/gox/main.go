@@ -342,10 +342,19 @@ func processFile(inputPath string, cfg *generateConfig) error {
 }
 
 // getOutputPath determines the output path for a .gox file.
+// Test files get special handling: foo_test.gox → foo_gox_test.go
+// so that Go's test runner recognizes them.
 func getOutputPath(inputPath, outputDir string) string {
-	// Replace .gox with _gox.go
 	baseName := strings.TrimSuffix(filepath.Base(inputPath), ".gox")
-	outputName := baseName + "_gox.go"
+
+	var outputName string
+	if strings.HasSuffix(baseName, "_test") {
+		// foo_test.gox → foo_gox_test.go
+		outputName = strings.TrimSuffix(baseName, "_test") + "_gox_test.go"
+	} else {
+		// foo.gox → foo_gox.go
+		outputName = baseName + "_gox.go"
+	}
 
 	if outputDir != "" {
 		return filepath.Join(outputDir, outputName)
@@ -602,7 +611,7 @@ func runGoCommand(goCmd string, args []string) error {
 
 	// Write generated files to source directories for vet compatibility.
 	// go vet doesn't read files through the overlay, so the files must exist
-	// on disk. These are gitignored via *_gox.go and cleaned up after the command.
+	// on disk. These are gitignored via *_gox.go / *_gox_test.go and cleaned up after the command.
 	overlayData, err := os.ReadFile(overlayFile.Name())
 	if err != nil {
 		return fmt.Errorf("reading overlay: %w", err)
@@ -688,8 +697,8 @@ func remapErrorLine(line string, sourceMaps map[string]*generator.SourceMap) str
 	colNum, _ := strconv.Atoi(matches[3])
 	message := matches[4]
 
-	// Check if this is a generated _gox.go file
-	if !strings.HasSuffix(filePath, "_gox.go") {
+	// Check if this is a generated gox file (_gox.go or _gox_test.go)
+	if !strings.HasSuffix(filePath, "_gox.go") && !strings.HasSuffix(filePath, "_gox_test.go") {
 		return line
 	}
 

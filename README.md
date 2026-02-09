@@ -172,7 +172,9 @@ Example `.gitignore` for applications:
 
 ```gitignore
 *_gox.go
+*_gox_test.go
 *_gox.go.map
+*_gox_test.go.map
 ```
 
 ## Typed Props

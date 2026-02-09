@@ -430,9 +430,13 @@ func (p *Proxy) generateAndCache(uri, text string) string {
 
 // goxToGoPath converts a .gox path to the generated .go path.
 // The .go file is placed next to the .gox file for same-package context.
+// Test files get special handling: foo_test.gox → foo_gox_test.go
 func (p *Proxy) goxToGoPath(goxPath string) string {
-	// e.g., /path/to/app.gox -> /path/to/app_gox.go
-	return strings.TrimSuffix(goxPath, ".gox") + "_gox.go"
+	base := strings.TrimSuffix(goxPath, ".gox")
+	if strings.HasSuffix(base, "_test") {
+		return strings.TrimSuffix(base, "_test") + "_gox_test.go"
+	}
+	return base + "_gox.go"
 }
 
 // rewriteURIs rewrites file URIs in a message.
@@ -447,7 +451,7 @@ func (p *Proxy) rewriteURIs(obj any, toGo bool) {
 						goxPath := uriToPath(uri)
 						goPath := p.goxToGoPath(goxPath)
 						v[key] = pathToURI(goPath)
-					} else if !toGo && strings.HasSuffix(uri, "_gox.go") {
+					} else if !toGo && (strings.HasSuffix(uri, "_gox.go") || strings.HasSuffix(uri, "_gox_test.go")) {
 						// Find original .gox file from source map
 						goPath := uriToPath(uri)
 						p.mu.RLock()

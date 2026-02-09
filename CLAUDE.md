@@ -37,7 +37,7 @@ go build -o /tmp/gox ./cmd/gox
 
 ## Code Generation
 
-Generated files use the `_gox.go` suffix (e.g., `app.gox` → `app_gox.go`).
+Generated files use the `_gox.go` suffix (e.g., `app.gox` → `app_gox.go`). Test files use `_gox_test.go` (e.g., `features_test.gox` → `features_gox_test.go`).
 
 The generator produces code like:
 ```go
@@ -69,4 +69,4 @@ The LSP proxies to gopls for Go intelligence. Key behaviors:
 
 Generated files should NOT be committed. They are:
 - Created in temp directories during `gox run/build` (overlay mode)
-- Gitignored via `*_gox.go` pattern
+- Gitignored via `*_gox.go` and `*_gox_test.go` patterns

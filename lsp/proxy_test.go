@@ -200,6 +200,8 @@ func TestGoxToGoPath(t *testing.T) {
 		{"/path/to/app.gox", "/path/to/app_gox.go"},
 		{"/Users/test/component.gox", "/Users/test/component_gox.go"},
 		{"relative/path.gox", "relative/path_gox.go"},
+		{"/path/to/features_test.gox", "/path/to/features_gox_test.go"},
+		{"relative/app_test.gox", "relative/app_gox_test.go"},
 	}
 
 	for _, tt := range tests {

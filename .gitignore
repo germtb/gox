@@ -8,7 +8,9 @@ cmd/gox/gox
 # so consumers can `go get` without needing gox installed.
 # See README.md for details.
 *_gox.go
+*_gox_test.go
 *_gox.go.map
+*_gox_test.go.map
 
 # IDE
 .idea/
